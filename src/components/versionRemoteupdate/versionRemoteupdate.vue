@@ -20,7 +20,7 @@
       </FormItem>
       <FormItem>
         <Button type="primary"
-                @click="submitData">确定</Button>
+                @click="sendPatten">确定</Button>
         <Button style="margin-left: 8px"
                 @click="cancel">取消</Button>
       </FormItem>
@@ -28,6 +28,25 @@
              @on-ok="sure"
              title="撤消更改">
         <p>确定要撤消刚才做出的更改吗?</p>
+      </Modal>
+      <Modal v-model="sendpatten"
+             title="选择发送模式"
+             @on-ok="sendData">
+        <Button @click="sendCode='0'">即刻发送</Button>
+        <Button style="margin-left: 8px"
+                @click="timingSend">定时发送</Button>
+      </Modal>
+      <Modal v-model="sendtime"
+             title="选择定时发送时间">
+        <Date-picker type="date"
+                     :options="options3"
+                     placeholder="选择日期"
+                     v-model="pickDate"></Date-picker>
+        <Time-picker type="time"
+                     size="small"
+                     placeholder="选择时间"
+                     format="HH点mm分ss秒"
+                     v-model="pickTime"></Time-picker>
       </Modal>
     </Form>
   </div>
@@ -45,8 +64,18 @@ export default {
   },
   data () {
     return {
+      options3: {
+        disabledDate (date) {
+          return date && date.valueOf() < Date.now() - 86400000
+        }
+      },
       modal1: false,
-      saveform: {},
+      sendCode: '0',
+      sendtime: false,
+      pickDate: '',
+      pickTime: '',
+      insObj: {}, // 列入任务清单
+      sendpatten: false,
       formValidate: {
         cmd: '0',
         softwareID: ''
@@ -74,14 +103,51 @@ export default {
       this.modal1 = false
     },
     submitData () {
+      let urlN = '/deployment/sendSoftwareUpdateCMD/communication'
+      this.sendRequest(urlN)
+    },
+    sendPatten () {
       this.$refs['formValidate'].validate((valid) => {
         if (valid) {
-          let urlN = '/deployment/sendSoftwareUpdateCMD/communication'
-          this.sendRequest(urlN)
+          this.sendpatten = true
         } else {
           this.$Message.error('输入不完整')
         }
       })
+    },
+    timingSend () { // 定时发送
+      this.sendCode = '1'
+      this.sendtime = true
+    },
+    GMTToStr (time) {
+      let date = new Date(time)
+      let Str = date.getFullYear() + '年' +
+        (date.getMonth() + 1) + '月' +
+        date.getDate() + '日'
+      return Str
+    },
+    chooseSendTime () {
+      this.$Message.success({
+        content: '本指令将于' + this.GMTToStr(this.pickDate) + this.pickTime + '发送',
+        duration: 3
+      })
+    },
+    sendData () {
+      if (this.sendCode === '0') {
+        this.submitData()
+      } else if (this.sendCode === '1') {
+        this.chooseSendTime()
+        this.insObj.name = '软件版本远程更新'
+        this.insObj.time = this.GMTToStr(this.pickDate) + this.pickTime
+        if (this.device - 1 === 0) {
+          this.$emit('func', this.insObj)
+        } else if (this.device - 1 === 1) {
+          this.$emit('functi', this.insObj)
+        } else if (this.device - 1 === 2) {
+          this.$emit('function', this.insObj)
+        }
+      }
+      this.sendpatten = false
     },
     sendRequest (url) {
       let updateAll1

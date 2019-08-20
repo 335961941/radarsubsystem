@@ -94,7 +94,6 @@ export default {
       pickDate: '',
       pickTime: '',
       insObj: {}, // 列入任务清单
-      sendinstruction: '0',
       sendpatten: false,
       formValidate: {
         checkType: '1',

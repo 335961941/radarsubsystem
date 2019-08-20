@@ -17,7 +17,8 @@
           <TabPane label="系统校时">
             <systemCalibration ref="sysTime"
                                :updateAll="updateAll"
-                               :device="tempdevice"></systemCalibration>
+                               :device="tempdevice"
+                               @func="changeArr"></systemCalibration>
           </TabPane>
           <TabPane label="设备自检">
             <equipmentSelfInspection ref="selfInspection"
@@ -28,22 +29,26 @@
           <TabPane label="设备工作流程控制">
             <equipment-workflow ref="workflow"
                                 :updateAll="updateAll"
-                                :device="tempdevice"></equipment-workflow>
+                                :device="tempdevice"
+                                @func="changeArr"></equipment-workflow>
           </TabPane>
           <TabPane label="设备网络参数更新">
             <networkParameterupdating ref="paramsupdate"
                                       :updateAll="updateAll"
-                                      :device="tempdevice"></networkParameterupdating>
+                                      :device="tempdevice"
+                                      @func="changeArr"></networkParameterupdating>
           </TabPane>
           <TabPane label="软件版本远程更新">
             <versionRemoteupdate ref="versionupdate"
                                  :updateAll="updateAll"
-                                 :device="tempdevice"></versionRemoteupdate>
+                                 :device="tempdevice"
+                                 @func="changeArr"></versionRemoteupdate>
           </TabPane>
           <TabPane label="设备复位">
             <deviceReset ref="devicereset"
                          :updateAll="updateAll"
-                         :device="tempdevice"></deviceReset>
+                         :device="tempdevice"
+                         @func="changeArr"></deviceReset>
           </TabPane>
         </Tabs>
       </Card>
@@ -63,7 +68,8 @@
           <TabPane label="系统校时">
             <system-calibration ref="sysTime"
                                 :updateAll="updateAll"
-                                :device="tempdevice"></system-calibration>
+                                :device="tempdevice"
+                                @functi="changeArr1"></system-calibration>
           </TabPane>
           <TabPane label="设备自检">
             <equipmentSelfInspection ref="selfInspection"
@@ -74,22 +80,26 @@
           <TabPane label="设备工作流程控制">
             <equipment-workflow ref="workflow"
                                 :updateAll="updateAll"
-                                :device="tempdevice"></equipment-workflow>
+                                :device="tempdevice"
+                                @functi="changeArr1"></equipment-workflow>
           </TabPane>
           <TabPane label="设备网络参数更新">
             <networkParameterupdating ref="paramsupdate"
                                       :updateAll="updateAll"
-                                      :device="tempdevice"></networkParameterupdating>
+                                      :device="tempdevice"
+                                      @functi="changeArr1"></networkParameterupdating>
           </TabPane>
           <TabPane label="软件版本远程更新">
             <versionRemoteupdate ref="versionupdate"
                                  :updateAll="updateAll"
-                                 :device="tempdevice"></versionRemoteupdate>
+                                 :device="tempdevice"
+                                 @functi="changeArr1"></versionRemoteupdate>
           </TabPane>
           <TabPane label="设备复位">
             <deviceReset ref="devicereset"
                          :updateAll="updateAll"
-                         :device="tempdevice"></deviceReset>
+                         :device="tempdevice"
+                         @functi="changeArr1"></deviceReset>
           </TabPane>
         </Tabs>
       </Card>
@@ -109,7 +119,8 @@
           <TabPane label="系统校时">
             <system-calibration ref="sysTime"
                                 :updateAll="updateAll"
-                                :device="tempdevice"></system-calibration>
+                                :device="tempdevice"
+                                @function="changeArr2"></system-calibration>
           </TabPane>
           <TabPane label="设备自检">
             <equipmentSelfInspection ref="selfInspection"
@@ -120,22 +131,26 @@
           <TabPane label="设备工作流程控制">
             <equipment-workflow ref="workflow"
                                 :updateAll="updateAll"
-                                :device="tempdevice"></equipment-workflow>
+                                :device="tempdevice"
+                                @function="changeArr2"></equipment-workflow>
           </TabPane>
           <TabPane label="设备网络参数更新">
             <networkParameterupdating ref="paramsupdate"
                                       :updateAll="updateAll"
-                                      :device="tempdevice"></networkParameterupdating>
+                                      :device="tempdevice"
+                                      @function="changeArr2"></networkParameterupdating>
           </TabPane>
           <TabPane label="软件版本远程更新">
             <versionRemoteupdate ref="versionupdate"
                                  :updateAll="updateAll"
-                                 :device="tempdevice"></versionRemoteupdate>
+                                 :device="tempdevice"
+                                 @function="changeArr2"></versionRemoteupdate>
           </TabPane>
           <TabPane label="设备复位">
             <deviceReset ref="devicereset"
                          :updateAll="updateAll"
-                         :device="tempdevice"></deviceReset>
+                         :device="tempdevice"
+                         @function="changeArr2"></deviceReset>
           </TabPane>
         </Tabs>
       </Card>
@@ -145,10 +160,6 @@
       <i-table border
                :columns="columns1"
                :data="data1"></i-table>
-      <!-- <i-table border
-               :content="self"
-               :columns="columns7"
-               :data="data6"></i-table> -->
     </Modal>
     <Modal title="任务清单"
            v-model="dialogVisible1">
@@ -161,6 +172,21 @@
       <i-table border
                :columns="columns3"
                :data="data3"></i-table>
+    </Modal>
+    <Modal title="确定删除？"
+           v-model="deleteok"
+           @on-ok="saveIndex1"
+           @on-cancel="deleteno">
+    </Modal>
+    <Modal title="确定删除？"
+           v-model="deleteok1"
+           @on-ok="saveIndex2"
+           @on-cancel="deleteno">
+    </Modal>
+    <Modal title="确定删除？"
+           v-model="deleteok2"
+           @on-ok="saveIndex3"
+           @on-cancel="deleteno">
     </Modal>
     </span>
     </el-dialog>
@@ -189,6 +215,13 @@ export default {
       dialogVisible: false,
       dialogVisible1: false,
       dialogVisible2: false,
+      deleteok: false,
+      deleteok1: false,
+      deleteok2: false,
+      deleteIndex1: '',
+      deleteIndex2: '',
+      deleteIndex3: '',
+      deleteCode: '0',
       columns1: [
         {
           title: '指令名称',
@@ -212,6 +245,7 @@ export default {
                 },
                 on: {
                   click: () => {
+                    this.deleteok = true
                     this.remove1(params.index)
                   }
                 }
@@ -244,6 +278,7 @@ export default {
                 },
                 on: {
                   click: () => {
+                    this.deleteok1 = true
                     this.remove2(params.index)
                   }
                 }
@@ -276,6 +311,7 @@ export default {
                 },
                 on: {
                   click: () => {
+                    this.deleteok2 = true
                     this.remove3(params.index)
                   }
                 }
@@ -314,28 +350,38 @@ export default {
       }
     },
     changeArr (data) {
-      // console.log(data)
       this.data1.push(JSON.parse(JSON.stringify(data)))// 去除引用关系
-      // console.log(this.data1)
     },
     changeArr1 (data) {
-      // console.log(data)
       this.data2.push(JSON.parse(JSON.stringify(data)))// 去除引用关系
-      // console.log(this.data2)
     },
     changeArr2 (data) {
-      // console.log(data)
       this.data3.push(JSON.parse(JSON.stringify(data)))// 去除引用关系
-      // console.log(this.data1)
     },
     remove1 (index) {
-      this.data1.splice(index, 1)
+      this.deleteIndex1 = index
     },
     remove2 (index) {
-      this.data2.splice(index, 1)
+      this.deleteIndex2 = index
     },
     remove3 (index) {
-      this.data3.splice(index, 1)
+      this.deleteIndex3 = index
+    },
+    saveIndex1 () {
+      this.data1.splice(this.deleteIndex1, 1)
+    },
+    saveIndex2 () {
+      this.data2.splice(this.deleteIndex2, 1)
+    },
+    saveIndex3 () {
+      this.data3.splice(this.deleteIndex3, 1)
+    },
+    delete1 () {
+      this.deleteCode = '1'
+      console.log(this.deleteCode)
+    },
+    deleteno () {
+      this.deleteCode = '0'
     }
   },
   components: {

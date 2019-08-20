@@ -1524,10 +1524,18 @@
             <Option value="2">IFF+中频</Option>
           </Select>
         </FormItem>
+        <FormItem label="内外秒脉冲选择"
+                  prop="PulseChoice">
+          <Select v-model="formValidate.PulseChoice"
+                  style="width:120px">
+            <Option value="0">内部</Option>
+            <Option value="1">外部</Option>
+          </Select>
+        </FormItem>
       </div>
       <FormItem>
         <Button type="primary"
-                @click="submitData">确定</Button>
+                @click="sendPatten">确定</Button>
         <Button style="margin-left: 8px"
                 @click="cancel">取消</Button>
       </FormItem>
@@ -1535,6 +1543,25 @@
              @on-ok="sure"
              title="撤消更改">
         <p>确定要撤消刚才做出的更改吗?</p>
+      </Modal>
+      <Modal v-model="sendpatten"
+             title="选择发送模式"
+             @on-ok="sendData">
+        <Button @click="sendCode='0'">即刻发送</Button>
+        <Button style="margin-left: 8px"
+                @click="timingSend">定时发送</Button>
+      </Modal>
+      <Modal v-model="sendtime"
+             title="选择定时发送时间">
+        <Date-picker type="date"
+                     :options="options3"
+                     placeholder="选择日期"
+                     v-model="pickDate"></Date-picker>
+        <Time-picker type="time"
+                     size="small"
+                     placeholder="选择时间"
+                     format="HH点mm分ss秒"
+                     v-model="pickTime"></Time-picker>
       </Modal>
     </Form>
   </div>
@@ -1555,7 +1582,18 @@ export default {
       }
     }
     return {
+      options3: {
+        disabledDate (date) {
+          return date && date.valueOf() < Date.now() - 86400000
+        }
+      },
       modal1: false,
+      sendCode: '0',
+      sendtime: false,
+      pickDate: '',
+      pickTime: '',
+      insObj: {}, // 列入任务清单
+      sendpatten: false,
       equipmentID: '',
       radarExtensionCode: '0',
       radarExtensionNum: 0,
@@ -1655,6 +1693,7 @@ export default {
         watchdogOpen: '0', // 下面为分机控制字字段
         state: '0',
         open: '0',
+        PulseChoice: '0',
         transformModal: '0',
         dealmodal: '0',
         calibrationModal: '0',
@@ -2242,6 +2281,7 @@ export default {
         this.res = this.dialogExtension
         this.res.extensionControlCharacter = this.mapformExtension()
         this.res.count = this.formValidate.count
+        this.res.radarExtensionNum = this.radarExtensionNum
         let updateAll1
         if (this.updateAll === false) {
           updateAll1 = 0
@@ -2271,6 +2311,7 @@ export default {
         this.res1.midCut1 = this.midCutControlMap1()
         this.res1.midCut2 = this.midCutControlMap2()
         this.res1.count = this.formValidate.count
+        this.res1.radarSystemNum = this.radarSystemNum
         let updateAll1
         if (this.updateAll === false) {
           updateAll1 = 0
@@ -2294,6 +2335,7 @@ export default {
       this.res = this.dialogExtension
       this.res.extensionControlCharacter = this.mapformExtension()
       this.res.count = this.formValidate.count
+      this.res.radarExtensionNum = this.radarExtensionNum
       let updateAll1
       if (this.updateAll === false) {
         updateAll1 = 0
@@ -2314,6 +2356,7 @@ export default {
       this.res1.midCut1 = this.midCutControlMap1()
       this.res1.midCut2 = this.midCutControlMap2()
       this.res1.count = this.formValidate.count
+      this.res1.radarSystemNum = this.radarSystemNum
       let updateAll1
       if (this.updateAll === false) {
         updateAll1 = 0
@@ -2401,6 +2444,49 @@ export default {
           this.$Message.error('输入不完整')
         }
       })
+    },
+    sendPatten () {
+      this.$refs['formValidate'].validate((valid) => {
+        if (valid) {
+          this.sendpatten = true
+        } else {
+          this.$Message.error('输入不完整')
+        }
+      })
+    },
+    timingSend () { // 定时发送
+      this.sendCode = '1'
+      this.sendtime = true
+    },
+    GMTToStr (time) {
+      let date = new Date(time)
+      let Str = date.getFullYear() + '年' +
+        (date.getMonth() + 1) + '月' +
+        date.getDate() + '日'
+      return Str
+    },
+    chooseSendTime () {
+      this.$Message.success({
+        content: '本指令将于' + this.GMTToStr(this.pickDate) + this.pickTime + '发送',
+        duration: 3
+      })
+    },
+    sendData () {
+      if (this.sendCode === '0') {
+        this.submitData()
+      } else if (this.sendCode === '1') {
+        this.chooseSendTime()
+        this.insObj.name = '设备工作流程控制'
+        this.insObj.time = this.GMTToStr(this.pickDate) + this.pickTime
+        if (this.device - 1 === 0) {
+          this.$emit('func', this.insObj)
+        } else if (this.device - 1 === 1) {
+          this.$emit('functi', this.insObj)
+        } else if (this.device - 1 === 2) {
+          this.$emit('function', this.insObj)
+        }
+      }
+      this.sendpatten = false
     },
     handleClose (done) {
       this.$confirm('确认关闭？')
@@ -2521,14 +2607,7 @@ export default {
     },
     submitData () {
       const urlN = '/deployment/sendDeviceWorkFlowCMD/communication'
-      this.$refs['formValidate'].validate((valid) => {
-        if (valid) {
-          this.sendRequest(urlN)
-        } else {
-          this.$Message.error('输入不完整')
-          return this.changeLoading()
-        }
-      })
+      this.sendRequest(urlN)
     },
     getTimeNow () {
       let myDate = new Date()
